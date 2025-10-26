@@ -1,3 +1,7 @@
 # Mosquitto Runtime
 mosquitto/data/
 !mosquitto/data/.gitkeep
+
+# Python
+__pycache__/
+*.pyc
