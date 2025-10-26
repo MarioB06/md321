@@ -9,5 +9,17 @@ services:
       - ./mosquitto/data:/mosquitto/data
     restart: always
 
+  morse-touch:
+    build:
+      context: ./morse-touch
+    command: python -u touch_morse.py --simulate --log-level INFO
+    volumes:
+      - ./morse-touch:/app
+    restart: unless-stopped
+    # Für echte Hardware kann optional Folgendes ergänzt werden:
+    # privileged: true
+    # devices:
+    #   - "/dev/gpiomem:/dev/gpiomem"
+
 volumes:
   mosquitto-data:
