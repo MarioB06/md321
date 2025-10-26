@@ -8,30 +8,13 @@ und Wörtern zusammen.
 ## Verwendung
 
 ```bash
-python touch_morse.py --simulate --log-level INFO
+python touch_morse.py --simulate
 ```
 
 Im Simulationsmodus werden zuvor definierte Tastendrücke abgespielt, sodass sich die Logik
-auch ohne echte Hardware demonstrieren lässt. Währenddessen erscheinen im Log alle erkannten
-Taster-Ereignisse (Drücken, Loslassen, Buchstaben, Wörter). Über den Parameter `--log-level`
-kann die Menge der Ausgaben gesteuert werden.
-
-Für den Betrieb auf einem Raspberry Pi kann das Skript ohne den Parameter `--simulate`
-gestartet werden. Der Taster muss dabei mit dem physikalischen Pin 11 (BCM 17) verbunden sein.
-Die Logausgaben erscheinen ebenfalls auf der Konsole.
-
-## Docker-Compose
-
-Analog zu den anderen Unterprojekten lässt sich das Skript nun auch über Docker Compose
-starten:
-
-```bash
-docker compose up morse-touch
-```
-
-Im Container wird standardmäßig der Simulationsmodus ausgeführt. Soll reale Hardware
-angesprochen werden, kann der Dienst im Compose-File um `privileged: true` sowie das
-Durchreichen von `/dev/gpiomem` ergänzt und der Start-Befehl entsprechend angepasst werden.
+auch ohne echte Hardware demonstrieren lässt. Für den Betrieb auf einem Raspberry Pi kann
+das Skript ohne den Parameter gestartet werden. Der Taster muss dabei mit dem physikalischen
+Pin 11 (BCM 17) verbunden sein.
 
 ## Funktionsweise
 

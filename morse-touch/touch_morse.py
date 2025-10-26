@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import logging
 import sys
 import time
 from dataclasses import dataclass, field
@@ -15,9 +14,6 @@ except ImportError:  # pragma: no cover - auf Nicht-RPi-Systemen erwartet
     GPIO = None
 
 from morse_decoder import MorseDecoder
-
-
-logger = logging.getLogger(__name__)
 
 BUTTON_PIN = 11  # BOARD-Nummerierung (physikalischer Pin 11 = BCM 17)
 
@@ -65,7 +61,6 @@ class TouchMorseInterpreter:
 
     def handle_press(self, timestamp: float) -> None:
         self.state.pressed_since = timestamp
-        logger.info("Taster gedrückt (t=%.3fs)", timestamp)
 
     def handle_release(self, timestamp: float) -> None:
         if self.state.pressed_since is None:
@@ -75,12 +70,6 @@ class TouchMorseInterpreter:
         self.state.current_symbol.append(symbol)
         self.state.pressed_since = None
         self.state.last_release = timestamp
-        logger.info(
-            "Taster losgelassen (t=%.3fs, dauer=%.3fs → %s)",
-            timestamp,
-            duration,
-            "Punkt" if symbol == "." else "Strich",
-        )
 
     def update_idle(self, timestamp: float) -> None:
         if self.state.pressed_since is not None or self.state.last_release is None:
@@ -100,7 +89,6 @@ class TouchMorseInterpreter:
         letter = self.decoder.decode_symbol(code)
         self.state.current_word.append(letter)
         self.state.current_symbol.clear()
-        logger.info("Buchstabe erkannt: %s (%s)", letter, code)
         if self.on_letter:
             self.on_letter(letter)
 
@@ -108,7 +96,6 @@ class TouchMorseInterpreter:
         if not self.state.current_word:
             return
         word = "".join(self.state.current_word)
-        logger.info("Wort abgeschlossen: %s", word)
         if self.on_word:
             self.on_word(word)
         else:
@@ -139,7 +126,7 @@ def run_gpio_loop(interpreter: TouchMorseInterpreter) -> None:
     GPIO.setmode(GPIO.BOARD)
     GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-    logger.info("Morse-Touch läuft. Drücke STRG+C zum Beenden.")
+    print("Morse-Touch läuft. Drücke STRG+C zum Beenden.")
     try:
         while True:
             now = time.monotonic()
@@ -151,7 +138,7 @@ def run_gpio_loop(interpreter: TouchMorseInterpreter) -> None:
             interpreter.update_idle(now)
             time.sleep(interpreter.config.poll_interval)
     except KeyboardInterrupt:
-        logger.info("Beendet.")
+        print("\nBeendet.")
     finally:
         GPIO.cleanup()
 
@@ -169,21 +156,11 @@ def parse_args(argv: Iterable[str]) -> argparse.Namespace:
         action="store_true",
         help="Startet eine Beispiel-Simulation für das Morse-Interface",
     )
-    parser.add_argument(
-        "--log-level",
-        default="INFO",
-        help="Log-Level (z. B. DEBUG, INFO, WARNING)",
-    )
     return parser.parse_args(list(argv))
 
 
 def main(argv: Iterable[str] | None = None) -> int:
     args = parse_args(argv or sys.argv[1:])
-    logging.basicConfig(
-        level=getattr(logging, args.log_level.upper(), logging.INFO),
-        format="%(asctime)s [%(levelname)s] %(message)s",
-    )
-    logger.debug("Starte mit Konfiguration: %s", args)
     config = MorseTimingConfig(
         dot_max=args.dot_max,
         letter_gap=args.letter_gap,
@@ -194,7 +171,6 @@ def main(argv: Iterable[str] | None = None) -> int:
     interpreter = TouchMorseInterpreter(decoder, config)
 
     if args.simulate:
-        logger.info("Starte Simulation")
         # SOS (... --- ...)
         sample_sequence = [
             (0.1, 0.2),
